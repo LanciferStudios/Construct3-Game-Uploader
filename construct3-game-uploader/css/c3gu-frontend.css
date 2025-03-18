@@ -1,0 +1,49 @@
+/* Center the game wrapper on the page with a max width */
+.c3gu-game-wrapper {
+    max-width: 1200px; /* Increased to accommodate larger custom sizes */
+    margin: 0 auto;
+    text-align: center;
+}
+
+.c3gu-game-wrapper iframe {
+    border: 0;
+    max-width: 100%;
+    display: inline-block;
+}
+
+/* Remove orientation-specific defaults, rely on custom sizes */
+.c3gu-game-wrapper iframe.c3gu-landscape {
+    aspect-ratio: 16 / 9; /* Optional fallback */
+}
+
+.c3gu-game-wrapper iframe.c3gu-portrait {
+    aspect-ratio: 9 / 16; /* Optional fallback */
+}
+
+.c3gu-button-wrapper {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.c3gu-game-description {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    text-align: left;
+}
+
+/* Style the fullscreen button */
+.c3gu-fullscreen-btn {
+    padding: 5px 10px;
+    background-color: #0073aa;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Add a hover effect to the button */
+.c3gu-fullscreen-btn:hover {
+    background-color: #005a87;
+}
