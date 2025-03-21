@@ -5,9 +5,10 @@ A WordPress plugin to upload and display Construct 3 HTML5 games.
 - Upload game ZIPs via WordPress admin.
 - Add rich text descriptions.
 - Choose Landscape (960x540), Portrait (540x960), or Custom sizes.
-- Auto-generates game pages.
-- Fullscreen button included.
-- Manage games (edit/delete).
+- Auto-generates pages for each game.
+- Shortcode to paste your game anywhere else on your site.
+- Fullscreen button included under your game.
+- Backend to manage your games (edit/delete).
 
 ## Installation
 1. Download the ZIP from [Releases](#) or the repo.
@@ -16,7 +17,7 @@ A WordPress plugin to upload and display Construct 3 HTML5 games.
 
 ## Requirements
 - PHP 7.4+ with ZIP extension.
-- Construct 3 game ZIP with `index.html`.
+- Construct 3 game ZIP with `index.html` using standard HTML5 export.
 
 Free for the Construct 3 community—enjoy!
 
