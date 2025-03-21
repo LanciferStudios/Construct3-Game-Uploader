@@ -19,3 +19,4 @@ A WordPress plugin to upload and display Construct 3 HTML5 games.
 - Construct 3 game ZIP with `index.html`.
 
 Free for the Construct 3 community—enjoy!
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21CA9XG)
