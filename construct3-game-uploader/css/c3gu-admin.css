@@ -1,0 +1,155 @@
+/* General wrapper styling to match WordPress admin */
+.c3gu-wrap {
+    margin: 0 20px 0 2px; /* Matches Pages list margin */
+    padding: 0;
+}
+
+/* Table styling to match WP Pages list */
+.c3gu-wrap .wp-list-table {
+    width: 100%;
+    border: 1px solid #c3c4c7; /* Outer border around the table */
+    background: #fff;
+    margin: 10px 0 0;
+    margin-bottom: 0; /* Ensure no gap below the table */
+    border-collapse: collapse; /* Merge adjacent borders */
+}
+
+/* Headers and cells */
+.c3gu-wrap .wp-list-table th,
+.c3gu-wrap .wp-list-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #c3c4c7;
+    text-align: left;
+}
+
+/* Header styling */
+.c3gu-wrap .wp-list-table th {
+    background: #f6f7f7;
+    font-weight: 600;
+    color: #1d2327;
+    border-bottom: 1px solid #c3c4c7;
+    border-top: none; /* Matches Pages list */
+}
+
+/* Row hover effect */
+.c3gu-wrap .wp-list-table tbody tr:hover {
+    background: #f0f6fc;
+}
+
+/* Striped rows */
+.c3gu-wrap .wp-list-table.striped > tbody > tr:nth-child(odd) {
+    background: #fff; /* Pages list uses white with hover, not stripes */
+}
+
+/* Bulk actions styling */
+.tablenav.top {
+    margin: 6px 0 14px 0; /* Matches Pages list spacing */
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tablenav .actions {
+    margin: 0;
+    padding: 0;
+}
+
+.tablenav select {
+    height: 28px; /* Matches Pages list */
+    padding: 4px 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    vertical-align: middle;
+    max-width: 120px;
+    border: 1px solid #8c8f94; /* Matches Pages list */
+    background: #fff;
+}
+
+.tablenav .button.action {
+    height: 28px; /* Matches Pages list */
+    padding: 0 10px;
+    font-size: 13px;
+    line-height: 26px;
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+    vertical-align: middle;
+}
+
+.tablenav .button.action:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+/* Bottom tablenav styling */
+.tablenav.bottom {
+    margin-top: 0; /* No gap above */
+    border-top: 1px solid #c3c4c7; /* Top border right against the table */
+    padding-top: 10px; /* Space for content below the border */
+}
+
+/* Checkbox column styling */
+.c3gu-wrap .wp-list-table th.column-cb,
+.c3gu-wrap .wp-list-table td.column-cb {
+    width: 35px;
+    padding: 8px 0 8px 10px; /* Matches Pages list padding */
+    text-align: center;
+    vertical-align: middle;
+    background: inherit;
+}
+
+/* Checkbox centering */
+.c3gu-wrap .wp-list-table th.column-cb input[type="checkbox"],
+.c3gu-wrap .wp-list-table td.column-cb input[type="checkbox"] {
+    margin: 0 auto;
+    padding: 0;
+    height: 16px;
+    width: 16px;
+    vertical-align: middle;
+}
+
+.c3gu-wrap .wp-list-table th.column-id {
+    width: 50px;
+}
+
+/* Title column - bold text like Pages list */
+.c3gu-wrap .wp-list-table td.column-title {
+    font-weight: 600;
+    color: #2c3338;
+}
+
+/* Ensure rows align properly */
+.c3gu-wrap .wp-list-table tbody tr td {
+    vertical-align: middle;
+}
+
+/* Links in actions column */
+.c3gu-wrap .wp-list-table .column-actions a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #2271b1;
+}
+
+.c3gu-wrap .wp-list-table .column-actions a:hover {
+    color: #135e96;
+}
+
+/* Footer (tfoot) styling */
+.c3gu-wrap .wp-list-table tfoot {
+    border-top: 1px solid #c3c4c7; /* Add a top border to the footer */
+}
+
+.c3gu-wrap .wp-list-table tfoot td {
+    border-bottom: 1px solid #c3c4c7; /* Ensure bottom border */
+}
+
+.forum-link, .donate-link {
+    font-weight: bold;
+    color: #0073aa; /* WordPress admin blue */
+    text-decoration: none;
+}
+
+.forum-link:hover, .donate-link:hover {
+    text-decoration: underline;
+}
