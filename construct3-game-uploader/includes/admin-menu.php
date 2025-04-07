@@ -26,7 +26,7 @@ function c3gu_settings_page() {
     echo '<div class="wrap">';
     echo '<h1>Settings</h1>';
     echo '<p>Settings page coming soon.</p>';
-    echo '<p><a href="https://example.com/forum" target="_blank" rel="noopener noreferrer" class="forum-link">Visit the forum for bug reports and suggestions</a></p>';
-    echo '<p><a href="https://example.com/donate" target="_blank" rel="noopener noreferrer" class="donate-link">Support the development of this plugin</a></p>';
+    echo '<p><a href="https://www.construct.net/en/forum/game-development/tools-and-resources-27/free-wordpress-plugin-185753" target="_blank" rel="noopener noreferrer" class="forum-link">Visit the forum for bug reports and suggestions</a></p>';
+    echo '<p><a href="https://ko-fi.com/C0C21CA9XG" target="_blank" rel="noopener noreferrer" class="donate-link">Support the development of this plugin</a></p>';
     echo '</div>';
 }

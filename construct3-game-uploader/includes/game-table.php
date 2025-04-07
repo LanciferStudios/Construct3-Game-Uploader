@@ -19,42 +19,64 @@ class C3GU_Games_List_Table extends WP_List_Table {
 
     function get_sortable_columns() {
         return [
-            'title' => ['title', true],       // Sort by title, default to ascending
-            'created_at' => ['created_at', true], // Sort by date, default to ascending
+            'title' => ['title', true],
+            'created_at' => ['created_at', true],
         ];
     }
 
     function prepare_items() {
-		global $wpdb;
+        global $wpdb;
 
-		// Whitelist allowed orderby columns
-		$allowed_orderby = ['id', 'title', 'created_at'];
-		$orderby = !empty($_GET['orderby']) && in_array($_GET['orderby'], $allowed_orderby) ? $_GET['orderby'] : 'id';
+        // Whitelist allowed orderby columns
+        $allowed_orderby = ['id', 'title', 'created_at'];
+        $orderby = !empty($_GET['orderby']) && in_array($_GET['orderby'], $allowed_orderby) ? $_GET['orderby'] : 'id';
 
-		// Ensure order is valid
-		$order = !empty($_GET['order']) && in_array(strtoupper($_GET['order']), ['ASC', 'DESC']) ? strtoupper($_GET['order']) : 'DESC';
+        // Ensure order is valid
+        $order = !empty($_GET['order']) && in_array(strtoupper($_GET['order']), ['ASC', 'DESC']) ? strtoupper($_GET['order']) : 'DESC';
 
-		// Fetch data
-		$this->items = $wpdb->get_results("SELECT * FROM " . C3GU_TABLE . " ORDER BY $orderby $order");
-		$this->_column_headers = [$this->get_columns(), [], $this->get_sortable_columns()];
-	}
+        // Get items per page from screen options (default to 20)
+        $per_page = $this->get_items_per_page('c3gu_games_per_page', 20);
+
+        // Pagination settings
+        $current_page = $this->get_pagenum();
+        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM " . C3GU_TABLE);
+        $offset = ($current_page - 1) * $per_page;
+
+        // Fetch paginated data
+        $this->items = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM " . C3GU_TABLE . " ORDER BY $orderby $order LIMIT %d OFFSET %d",
+            $per_page,
+            $offset
+        ));
+
+        // Set column headers and sortable columns
+        $this->_column_headers = [$this->get_columns(), [], $this->get_sortable_columns()];
+
+        // Set pagination arguments
+        $this->set_pagination_args([
+            'total_items' => $total_items,
+            'per_page'    => $per_page,
+            'total_pages' => ceil($total_items / $per_page)
+        ]);
+    }
 
     function column_default($item, $column_name) {
-    switch ($column_name) {
-        case 'id':
-            return $item->id;
-        case 'created_at':
-			$date_format = get_option('date_format');
-			$time_format = get_option('time_format');
-			return date_i18n($date_format . ' \a\t ' . $time_format, strtotime($item->created_at));
-        case 'shortcode':
-            return '[c3_game id="' . $item->id . '"]';
-        case 'orientation':
-            return ucfirst($item->orientation);
-        default:
-            return '';
+        switch ($column_name) {
+            case 'id':
+                return $item->id;
+            case 'created_at':
+                $date_format = get_option('date_format');
+                $time_format = get_option('time_format');
+                return date_i18n($date_format . ' \a\t ' . $time_format, strtotime($item->created_at));
+            case 'shortcode':
+                $shortcode = '[c3_game id="' . $item->id . '"]';
+                return '<button type="button" class="button button-secondary c3gu-shortcode-button" id="shortcode-' . $item->id . '" onclick="copyShortcode(\'' . $item->id . '\', \'' . esc_js($shortcode) . '\')" title="Click to copy shortcode">Copy: ' . esc_html($shortcode) . '</button>';
+            case 'orientation':
+                return ucfirst($item->orientation);
+            default:
+                return '';
+        }
     }
-}
 
     function column_cb($item) {
         return sprintf('<input type="checkbox" name="game_ids[]" value="%s" />', $item->id);
@@ -100,6 +122,24 @@ class C3GU_Games_List_Table extends WP_List_Table {
 function c3gu_all_games_page() {
     global $wpdb;
 
+    // Get current screen
+    $screen = get_current_screen();
+
+    // Debug: Display screen ID on page
+    echo '<p>Screen ID Test: ' . ($screen ? $screen->id : 'Not set') . '</p>';
+
+    // Add screen option for items per page
+    add_screen_option('per_page', [
+        'label' => 'Games per page',
+        'default' => 20,
+        'option' => 'c3gu_games_per_page'
+    ]);
+
+    // Debug: Log screen ID to console
+    add_action('admin_head', function() use ($screen) {
+        echo '<script>console.log("Screen ID: ' . ($screen ? $screen->id : 'Not set') . '");</script>';
+    });
+
     if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id']) && check_admin_referer('c3gu_delete_game_' . $_GET['id'])) {
         $game_id = intval($_GET['id']);
         $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, page_id FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
@@ -121,12 +161,45 @@ function c3gu_all_games_page() {
     $table->prepare_items();
     ?>
     <div class="wrap c3gu-wrap">
-        <h1 class="wp-heading-inline">Construct3 Games</h1>
+        <h1 class="wp-heading-inline">C3 Games</h1>
         <a href="<?php echo admin_url('admin.php?page=c3gu-add-new'); ?>" class="page-title-action">Add New</a>
         <?php settings_errors('c3gu_messages'); ?>
         <form method="post">
             <?php $table->display(); ?>
         </form>
+        <script>
+        function copyShortcode(id, shortcode) {
+            console.log('Button clicked for ID: ' + id);
+            console.log('Shortcode to copy: ' + shortcode);
+            var button = document.getElementById('shortcode-' + id);
+            var tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.left = '-9999px';
+            tempInput.value = shortcode;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                console.log('Copy successful via execCommand');
+                button.innerText = 'Copied!';
+                setTimeout(function() {
+                    button.innerText = 'Copy: ' + shortcode;
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed: ', err);
+            }
+            document.body.removeChild(tempInput);
+        }
+        </script>
     </div>
     <?php
 }
+
+// Hook to save the screen option value
+function c3gu_set_screen_option($status, $option, $value) {
+    if ('c3gu_games_per_page' === $option) {
+        return $value;
+    }
+    return $status;
+}
+add_filter('set-screen-option', 'c3gu_set_screen_option', 10, 3);
