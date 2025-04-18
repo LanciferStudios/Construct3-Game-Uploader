@@ -27,37 +27,12 @@ class C3GU_Games_List_Table extends WP_List_Table {
     function prepare_items() {
         global $wpdb;
 
-        // Whitelist allowed orderby columns
         $allowed_orderby = ['id', 'title', 'created_at'];
         $orderby = !empty($_GET['orderby']) && in_array($_GET['orderby'], $allowed_orderby) ? $_GET['orderby'] : 'id';
-
-        // Ensure order is valid
         $order = !empty($_GET['order']) && in_array(strtoupper($_GET['order']), ['ASC', 'DESC']) ? strtoupper($_GET['order']) : 'DESC';
 
-        // Get items per page from screen options (default to 20)
-        $per_page = $this->get_items_per_page('c3gu_games_per_page', 20);
-
-        // Pagination settings
-        $current_page = $this->get_pagenum();
-        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM " . C3GU_TABLE);
-        $offset = ($current_page - 1) * $per_page;
-
-        // Fetch paginated data
-        $this->items = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM " . C3GU_TABLE . " ORDER BY $orderby $order LIMIT %d OFFSET %d",
-            $per_page,
-            $offset
-        ));
-
-        // Set column headers and sortable columns
+        $this->items = $wpdb->get_results("SELECT * FROM " . c3gu_get_table_name() . " ORDER BY $orderby $order");
         $this->_column_headers = [$this->get_columns(), [], $this->get_sortable_columns()];
-
-        // Set pagination arguments
-        $this->set_pagination_args([
-            'total_items' => $total_items,
-            'per_page'    => $per_page,
-            'total_pages' => ceil($total_items / $per_page)
-        ]);
     }
 
     function column_default($item, $column_name) {
@@ -70,7 +45,12 @@ class C3GU_Games_List_Table extends WP_List_Table {
                 return date_i18n($date_format . ' \a\t ' . $time_format, strtotime($item->created_at));
             case 'shortcode':
                 $shortcode = '[c3_game id="' . $item->id . '"]';
-                return '<button type="button" class="button button-secondary c3gu-shortcode-button" id="shortcode-' . $item->id . '" onclick="copyShortcode(\'' . $item->id . '\', \'' . esc_js($shortcode) . '\')" title="Click to copy shortcode">Copy: ' . esc_html($shortcode) . '</button>';
+                return '<button type="button" class="copy-shortcode" data-shortcode="' . esc_attr($shortcode) . '">
+                            <span class="screen-reader-text">Copy shortcode for ' . esc_html($item->title) . '</span>
+                            ' . esc_html($shortcode) . '
+                            <span class="tooltip">Click to copy</span>
+                            <span class="copied" style="display: none;">Copied!</span>
+                        </button>';
             case 'orientation':
                 return ucfirst($item->orientation);
             default:
@@ -107,11 +87,11 @@ class C3GU_Games_List_Table extends WP_List_Table {
         if ('delete' === $this->current_action() && !empty($_POST['game_ids']) && check_admin_referer('bulk-' . $this->_args['plural'])) {
             $game_ids = array_map('intval', $_POST['game_ids']);
             foreach ($game_ids as $game_id) {
-                $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, page_id FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
+                $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, page_id FROM " . c3gu_get_table_name() . " WHERE id = %d", $game_id));
                 if ($game) {
                     c3gu_delete_directory(C3GU_UPLOAD_DIR . $game->folder_path);
-                    if ($game->page_id) wp_delete_post($game->page_id, true);
-                    $wpdb->delete(C3GU_TABLE, ['id' => $game_id], ['%d']);
+                    if ($game->page_id) wp_delete_post($game_id, true);
+                    $wpdb->delete(c3gu_get_table_name(), ['id' => $game_id], ['%d']);
                 }
             }
             add_settings_error('c3gu_messages', 'bulk_delete', 'Selected games deleted successfully.', 'success');
@@ -122,31 +102,13 @@ class C3GU_Games_List_Table extends WP_List_Table {
 function c3gu_all_games_page() {
     global $wpdb;
 
-    // Get current screen
-    $screen = get_current_screen();
-
-    // Debug: Display screen ID on page
-    echo '<p>Screen ID Test: ' . ($screen ? $screen->id : 'Not set') . '</p>';
-
-    // Add screen option for items per page
-    add_screen_option('per_page', [
-        'label' => 'Games per page',
-        'default' => 20,
-        'option' => 'c3gu_games_per_page'
-    ]);
-
-    // Debug: Log screen ID to console
-    add_action('admin_head', function() use ($screen) {
-        echo '<script>console.log("Screen ID: ' . ($screen ? $screen->id : 'Not set') . '");</script>';
-    });
-
     if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id']) && check_admin_referer('c3gu_delete_game_' . $_GET['id'])) {
         $game_id = intval($_GET['id']);
-        $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, page_id FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
+        $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, page_id FROM " . c3gu_get_table_name() . " WHERE id = %d", $game_id));
         if ($game) {
             c3gu_delete_directory(C3GU_UPLOAD_DIR . $game->folder_path);
-            if ($game->page_id) wp_delete_post($game->page_id, true);
-            $wpdb->delete(C3GU_TABLE, ['id' => $game_id], ['%d']);
+            if ($game->page_id) wp_delete_post($game_id, true);
+            $wpdb->delete(c3gu_get_table_name(), ['id' => $game_id], ['%d']);
             add_settings_error('c3gu_messages', 'single_delete', 'Game deleted successfully.', 'success');
         }
     }
@@ -161,45 +123,122 @@ function c3gu_all_games_page() {
     $table->prepare_items();
     ?>
     <div class="wrap c3gu-wrap">
-        <h1 class="wp-heading-inline">C3 Games</h1>
+        <h1 class="wp-heading-inline">Construct3 Games</h1>
         <a href="<?php echo admin_url('admin.php?page=c3gu-add-new'); ?>" class="page-title-action">Add New</a>
         <?php settings_errors('c3gu_messages'); ?>
         <form method="post">
             <?php $table->display(); ?>
         </form>
-        <script>
-        function copyShortcode(id, shortcode) {
-            console.log('Button clicked for ID: ' + id);
-            console.log('Shortcode to copy: ' + shortcode);
-            var button = document.getElementById('shortcode-' + id);
-            var tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.left = '-9999px';
-            tempInput.value = shortcode;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            try {
-                document.execCommand('copy');
-                console.log('Copy successful via execCommand');
-                button.innerText = 'Copied!';
-                setTimeout(function() {
-                    button.innerText = 'Copy: ' + shortcode;
-                }, 2000);
-            } catch (err) {
-                console.error('Copy failed: ', err);
+        <!-- Inline CSS for styling the copy button and tooltips -->
+        <style>
+            .copy-shortcode {
+                position: relative;
+                cursor: pointer;
+                background: none;
+                border: none;
+                padding: 0;
+                color: #0073aa;
+                text-decoration: underline;
             }
-            document.body.removeChild(tempInput);
-        }
+            .copy-shortcode:hover {
+                color: #005177;
+            }
+            .tooltip {
+                display: none;
+                position: absolute;
+                background: #333;
+                color: #fff;
+                padding: 5px 10px;
+                border-radius: 3px;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+                font-size: 12px;
+                z-index: 10;
+            }
+            .copied {
+                display: none;
+                position: absolute;
+                background: #333;
+                color: #fff;
+                padding: 5px 10px;
+                border-radius: 3px;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+                font-size: 12px;
+                z-index: 10;
+            }
+            .copy-shortcode:hover .tooltip {
+                display: block;
+            }
+            .screen-reader-text {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                border: 0;
+            }
+        </style>
+        <!-- Inline JavaScript for copy functionality -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                console.log("C3GU copy script loaded"); // Log when script initializes
+                document.querySelectorAll(".copy-shortcode").forEach(button => {
+                    button.addEventListener("click", function(event) {
+                        event.preventDefault();
+                        const shortcode = this.getAttribute("data-shortcode");
+                        const copied = this.querySelector(".copied");
+                        console.log("Attempting to copy shortcode: " + shortcode); // Log click action
+
+                        // Try Clipboard API
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(shortcode)
+                                .then(() => {
+                                    console.log("Successfully copied via Clipboard API: " + shortcode);
+                                    copied.style.display = "block";
+                                    setTimeout(() => {
+                                        copied.style.display = "none";
+                                        console.log("Hid 'Copied!' message");
+                                    }, 1000);
+                                })
+                                .catch(err => {
+                                    console.error("Clipboard API failed: ", err);
+                                    fallbackCopy(shortcode, copied);
+                                });
+                        } else {
+                            console.log("Clipboard API unavailable, using fallback");
+                            fallbackCopy(shortcode, copied);
+                        }
+                    });
+                });
+
+                function fallbackCopy(text, copiedElement) {
+                    console.log("Running fallback copy for: " + text);
+                    const textarea = document.createElement("textarea");
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand("copy");
+                        console.log("Successfully copied via fallback: " + text);
+                        copiedElement.style.display = "block";
+                        setTimeout(() => {
+                            copiedElement.style.display = "none";
+                            console.log("Hid 'Copied!' message in fallback");
+                        }, 1000);
+                    } catch (err) {
+                        console.error("Fallback copy failed: ", err);
+                    }
+                    document.body.removeChild(textarea);
+                }
+            });
         </script>
     </div>
     <?php
 }
-
-// Hook to save the screen option value
-function c3gu_set_screen_option($status, $option, $value) {
-    if ('c3gu_games_per_page' === $option) {
-        return $value;
-    }
-    return $status;
-}
-add_filter('set-screen-option', 'c3gu_set_screen_option', 10, 3);

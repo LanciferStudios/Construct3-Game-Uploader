@@ -5,7 +5,7 @@ function c3gu_edit_game_page() {
     global $wpdb;
 
     $game_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-    $game = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
+    $game = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . c3gu_get_table_name() . " WHERE id = %d", $game_id));
 
     if (!$game) {
         echo '<div class="notice notice-error"><p>Game not found.</p></div>';
@@ -59,13 +59,13 @@ function c3gu_edit_game_page() {
                 }
             }
 
-            $updated = $wpdb->update(C3GU_TABLE, $data, $where, ['%s', '%s', '%s', '%d', '%d'], ['%d']);
+            $updated = $wpdb->update(c3gu_get_table_name(), $data, $where, ['%s', '%s', '%s', '%d', '%d'], ['%d']);
             if ($updated !== false) {
                 if ($title !== $game->title && $game->page_id) {
                     wp_update_post(['ID' => $game->page_id, 'post_title' => $title]);
                 }
                 // Re-fetch the game data after update to reflect changes
-                $game = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
+                $game = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . c3gu_get_table_name() . " WHERE id = %d", $game_id));
                 echo '<div class="notice notice-success"><p>Game updated successfully!</p></div>';
             } else {
                 echo '<div class="notice notice-error"><p>Failed to update game: ' . esc_html($wpdb->last_error) . '</p></div>';

@@ -14,17 +14,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Define constants
-define('C3GU_VERSION', '1.0.0');
+// Define constants that don’t rely on WordPress globals
+define('C3GU_VERSION', '1.0.0-beta.1');
 define('C3GU_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('C3GU_PLUGIN_URL', plugin_dir_url(__FILE__));
-global $wpdb;
-define('C3GU_TABLE', $wpdb->prefix . 'c3_games');
 define('C3GU_UPLOAD_DIR', wp_upload_dir()['basedir'] . '/c3_games/');
 define('C3GU_UPLOAD_URL', wp_upload_dir()['baseurl'] . '/c3_games/');
 
+// Function to dynamically get the table name
+function c3gu_get_table_name() {
+    global $wpdb;
+    return $wpdb->prefix . 'c3_games';
+}
+
 // Include necessary files
-require_once C3GU_PLUGIN_DIR . 'includes/functions.php'; // New shared functions file
+require_once C3GU_PLUGIN_DIR . 'includes/functions.php';
 require_once C3GU_PLUGIN_DIR . 'includes/database.php';
 require_once C3GU_PLUGIN_DIR . 'includes/admin-menu.php';
 require_once C3GU_PLUGIN_DIR . 'includes/game-table.php';

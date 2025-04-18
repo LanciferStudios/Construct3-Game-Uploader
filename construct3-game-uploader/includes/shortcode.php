@@ -12,7 +12,7 @@ function c3gu_game_shortcode($atts) {
         return '<p>Invalid game ID.</p>';
     }
 
-    $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, description, orientation, custom_width, custom_height FROM " . C3GU_TABLE . " WHERE id = %d", $game_id));
+    $game = $wpdb->get_row($wpdb->prepare("SELECT folder_path, description, orientation, custom_width, custom_height FROM " . c3gu_get_table_name() . " WHERE id = %d", $game_id));
     if (!$game || !file_exists(C3GU_UPLOAD_DIR . $game->folder_path . '/index.html')) {
         return '<p>Game not found.</p>';
     }

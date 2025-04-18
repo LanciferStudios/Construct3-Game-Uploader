@@ -19,7 +19,7 @@ function c3gu_add_new_game_page() {
             if (isset($upload['error'])) {
                 echo '<div class="notice notice-error"><p>File upload failed: ' . esc_html($upload['error']) . '</p></div>';
             } else {
-                $wpdb->insert(C3GU_TABLE, [
+                $wpdb->insert(c3gu_get_table_name(), [
                     'title' => $title,
                     'description' => $description,
                     'orientation' => $orientation,
@@ -37,7 +37,7 @@ function c3gu_add_new_game_page() {
                         $zip->close();
                         unlink($upload['file']);
                         if (file_exists($extract_dir . '/index.html')) {
-                            $wpdb->update(C3GU_TABLE, ['folder_path' => $folder_path], ['id' => $game_id], ['%s'], ['%d']);
+                            $wpdb->update(c3gu_get_table_name(), ['folder_path' => $folder_path], ['id' => $game_id], ['%s'], ['%d']);
                             $page_data = [
                                 'post_title' => $title,
                                 'post_content' => '[c3_game id="' . $game_id . '"]',
@@ -48,18 +48,18 @@ function c3gu_add_new_game_page() {
                             ];
                             $page_id = wp_insert_post($page_data);
                             if (!is_wp_error($page_id)) {
-                                $wpdb->update(C3GU_TABLE, ['page_id' => $page_id], ['id' => $game_id], ['%d'], ['%d']);
+                                $wpdb->update(c3gu_get_table_name(), ['page_id' => $page_id], ['id' => $game_id], ['%d'], ['%d']);
                                 echo '<div class="notice notice-success"><p>Game added! <a href="' . esc_url(get_permalink($page_id)) . '">View Page</a></p></div>';
                             } else {
                                 echo '<div class="notice notice-error"><p>Page creation failed: ' . esc_html($page_id->get_error_message()) . '</p></div>';
                             }
                         } else {
                             c3gu_delete_directory($extract_dir);
-                            $wpdb->delete(C3GU_TABLE, ['id' => $game_id], ['%d']);
+                            $wpdb->delete(c3gu_get_table_name(), ['id' => $game_id], ['%d']);
                             echo '<div class="notice notice-error"><p>No index.html in ZIP file.</p></div>';
                         }
                     } else {
-                        $wpdb->delete(C3GU_TABLE, ['id' => $game_id], ['%d']);
+                        $wpdb->delete(c3gu_get_table_name(), ['id' => $game_id], ['%d']);
                         echo '<div class="notice notice-error"><p>ZIP extraction failed.</p></div>';
                     }
                 } else {
@@ -121,7 +121,7 @@ function c3gu_add_new_game_page() {
             </table>
             <p class="submit">
                 <input type="submit" name="c3gu_add_game" class="button button-primary" value="Add Game">
-				<a href="<?php echo admin_url('admin.php?page=c3gu-games'); ?>" class="button">Back to Games</a>
+                <a href="<?php echo admin_url('admin.php?page=c3gu-games'); ?>" class="button">Back to Games</a>
             </p>
         </form>
     </div>

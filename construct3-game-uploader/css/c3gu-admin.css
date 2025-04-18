@@ -153,8 +153,3 @@
 .forum-link:hover, .donate-link:hover {
     text-decoration: underline;
 }
-
-.c3gu-shortcode-button {
-    min-width: 150px; /* Adjust as needed */
-    text-align: center;
-}

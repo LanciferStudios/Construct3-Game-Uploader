@@ -7,10 +7,9 @@ if (!defined('ABSPATH')) {
 
 function c3gu_activate() {
     global $wpdb;
-    $table_name = C3GU_TABLE;
+    $table_name = c3gu_get_table_name(); // Use dynamic function
     $charset_collate = $wpdb->get_charset_collate();
 
-    // Define the full table structure
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         title varchar(255) NOT NULL,
@@ -30,17 +29,15 @@ function c3gu_activate() {
 
     // Create upload directory if it doesn’t exist
     if (!file_exists(C3GU_UPLOAD_DIR)) {
-        wp_mkdir_p(C3GU_UPLOAD_DIR);
+        if (!wp_mkdir_p(C3GU_UPLOAD_DIR)) {
+            error_log('Failed to create upload directory: ' . C3GU_UPLOAD_DIR);
+        }
     }
 
-    // Ensure existing table is updated to allow NULL for custom_width and custom_height
-    $installed_version = get_option('c3gu_version', '0.0.0');
-    if (version_compare($installed_version, '1.1.0', '<')) {
-        $wpdb->query("ALTER TABLE $table_name 
-            MODIFY custom_width INT DEFAULT NULL,
-            MODIFY custom_height INT DEFAULT NULL");
-        // Optional: Clear custom sizes for non-custom orientations
-        $wpdb->query("UPDATE $table_name SET custom_width = NULL, custom_height = NULL WHERE orientation != 'custom'");
-        update_option('c3gu_version', '1.1.0');
+    // Optionally, handle database version updates here
+    $installed_version = get_option('c3gu_db_version', '0.0.0');
+    if (version_compare($installed_version, '1.0.0', '<')) {
+        // Add any schema updates if needed
+        update_option('c3gu_db_version', '1.0.0');
     }
 }
